@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  html,
+  body,
+  #app {
+    font-family: var(--font-sans);
+    background-color: #07080c;
+    color: #f4f4f5;
+    min-height: 100dvh;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    touch-action: manipulation;
+  }
+}
+
+.font-mono-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mobil safe-area padding (iPhone notch / Dynamic Island uchun) */
+.safe-area-x {
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+}
+
+.safe-area-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+/* Sensorli pianino konteyneri: tasodifiy zoom, scroll va kontekst menyuni to‘liq bloklash */
+.piano-touch-surface {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Sensorli qurilmalarda kompyuter klaviaturasi harflarini avtomatik yashirish */
+@media (pointer: coarse) {
+  .desktop-hotkey-only {
+    display: none !important;
+  }
+}
+
+/* Apple-style frosted glass panels */
+.glass-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.025) 100%);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 20px 50px -20px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.085);
+}
+
+/* Custom sleek range slider */
+input[type='range'].studio-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type='range'].studio-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+input[type='range'].studio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: #f8fafc;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.55);
+  margin-top: -6px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type='range'].studio-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.8);
+}
+
+input[type='range'].studio-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+input[type='range'].studio-slider::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: #f8fafc;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.55);
+}
+
+/* Piano key animations */
+@keyframes targetPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(56, 189, 248, 0.55),
+      inset 0 -4px 12px rgba(16, 185, 129, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(16, 185, 129, 0.7),
+      inset 0 -4px 16px rgba(56, 189, 248, 0.75);
+  }
+}
+
+@keyframes targetLeftPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 18px rgba(168, 85, 247, 0.6),
+      inset 0 -4px 12px rgba(251, 146, 60, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(251, 146, 60, 0.75),
+      inset 0 -4px 16px rgba(168, 85, 247, 0.8);
+  }
+}
+
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+@keyframes popStar {
+  0% { transform: scale(0.3) rotate(-18deg); opacity: 0; }
+  65% { transform: scale(1.18) rotate(6deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes rotateDevice {
+  0%, 18% { transform: rotate(0deg); }
+  48%, 72% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.animate-target-pulse {
+  animation: targetPulse 1.6s ease-in-out infinite;
+}
+
+.animate-target-left-pulse {
+  animation: targetLeftPulse 1.6s ease-in-out infinite;
+}
+
+.animate-wrong-shake {
+  animation: wrongShake 0.22s ease-in-out;
+}
+
+.animate-pop-star {
+  animation: popStar 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-rotate-device {
+  animation: rotateDevice 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Subtle custom scrollbar */
+.piano-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.piano-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 9999px;
+}
+.piano-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+}
+.piano-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
