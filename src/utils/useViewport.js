@@ -17,7 +17,9 @@ const state = reactive({
   isScrollableKeyboard: false, // telefon va planshetda qulay barmoq o‘lchamli suriluvchi klaviatura
   deviceMode: 'laptop', // 'laptop' | 'tablet' | 'phone'
   fullscreenSupported: false,
-  isFullscreen: false
+  isFullscreen: false,
+  isIOS: false,
+  isStandalone: false
 })
 
 let listenersCount = 0
@@ -50,6 +52,16 @@ function updateMetrics() {
 
   // Laptop rejimida to‘liq 3 oktava (22 oq tugma) ko‘rinadi; telefon/planshetda barmoq uchun kattalashtiriladi
   state.isScrollableKeyboard = state.deviceMode !== 'laptop'
+
+  state.isIOS =
+    typeof navigator !== 'undefined' &&
+    (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+
+  state.isStandalone =
+    typeof window !== 'undefined' &&
+    (Boolean(window.navigator?.standalone) ||
+      Boolean(window.matchMedia?.('(display-mode: standalone)')?.matches))
 
   const doc = document
   state.fullscreenSupported = Boolean(

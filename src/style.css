@@ -27,14 +27,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Mobil safe-area padding (iPhone notch / Dynamic Island uchun) */
+/* Mobil safe-area padding (iPhone notch / Dynamic Island va pastki gesture panellari uchun) */
 .safe-area-x {
   padding-left: max(0.75rem, env(safe-area-inset-left));
   padding-right: max(0.75rem, env(safe-area-inset-right));
 }
 
 .safe-area-bottom {
-  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 12px));
 }
 
 /* Sensorli pianino konteyneri: tasodifiy zoom, scroll va kontekst menyuni to‘liq bloklash */

@@ -11,6 +11,7 @@ import {
   Sparkles,
   X
 } from 'lucide-vue-next'
+import { useViewport } from '../utils/useViewport.js'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -27,6 +28,8 @@ const emit = defineEmits([
   'update:learningMode',
   'update:practiceHand'
 ])
+
+const { viewport } = useViewport()
 
 const handBadgeText = computed(() => {
   if (props.lesson.handMode === 'left') return 'Chap qo‘l'
@@ -57,210 +60,384 @@ const handBadgeClass = computed(() => {
     >
       <div
         v-if="open"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-3 sm:p-4 overflow-y-auto"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-2.5 sm:p-4 overflow-y-auto safe-area-x safe-area-bottom"
         @click.self="emit('close')"
       >
         <div
-          class="glass-panel relative w-full max-w-lg max-h-[92dvh] overflow-y-auto rounded-3xl border border-white/[0.12] bg-[#0d111b]/96 p-5 sm:p-6 shadow-2xl my-auto"
+          :class="[
+            'glass-panel relative w-full rounded-3xl border border-white/[0.12] bg-[#0d111b]/96 shadow-2xl my-auto',
+            viewport.isShortLandscape
+              ? 'max-w-2xl p-3 sm:p-4 max-h-[94dvh] overflow-y-auto'
+              : 'max-w-lg p-4.5 sm:p-6 max-h-[90dvh] overflow-y-auto'
+          ]"
         >
           <div
             class="pointer-events-none absolute -top-20 left-1/2 h-40 w-72 -translate-x-1/2 rounded-full bg-sky-500/15 blur-3xl"
           />
 
-          <!-- Yuqori qism -->
-          <div class="relative flex items-start justify-between gap-3">
-            <div>
-              <div class="flex items-center flex-wrap gap-1.5 mb-2">
-                <span
-                  class="rounded-full border border-white/[0.1] bg-white/[0.06] px-2.5 py-0.5 text-[11px] font-semibold text-zinc-200"
-                >
+          <!-- ==================== SHORT LANDSCAPE LAYOUT (Smartfonlar gorizontal ekrani uchun) ==================== -->
+          <div v-if="viewport.isShortLandscape" class="relative">
+            <!-- Header Row -->
+            <div class="flex items-center justify-between gap-2 pr-1 mb-2">
+              <div class="flex items-center flex-wrap gap-1.5 min-w-0">
+                <span class="rounded-full border border-white/[0.1] bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-zinc-200">
                   {{ levelInfo?.title || `${lesson.level}-bosqich` }}
                 </span>
-                <span
-                  :class="[
-                    'rounded-full border px-2.5 py-0.5 text-[11px] font-semibold',
-                    handBadgeClass
-                  ]"
-                >
+                <span :class="['rounded-full border px-2 py-0.5 text-[10px] font-semibold', handBadgeClass]">
                   {{ handBadgeText }}
                 </span>
-                <span
-                  class="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 font-mono-num text-[11px] text-zinc-300"
-                >
+                <span class="rounded-full border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 font-mono-num text-[10px] text-zinc-300">
                   {{ lesson.bpm || lesson.defaultBpm }} BPM · {{ lesson.steps.length }} qadam
                 </span>
+                <h2 class="text-sm sm:text-base font-bold text-white tracking-tight truncate ml-1">
+                  {{ lesson.title }}
+                </h2>
               </div>
 
-              <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">
-                {{ lesson.title }}
-              </h2>
-              <p class="mt-0.5 text-xs sm:text-sm text-zinc-400">
-                {{ lesson.subtitle }}
-              </p>
+              <button
+                type="button"
+                @click="emit('close')"
+                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-400 hover:text-white transition cursor-pointer"
+                aria-label="Yopish"
+              >
+                <X class="h-3.5 w-3.5" />
+              </button>
             </div>
 
-            <button
-              type="button"
-              @click="emit('close')"
-              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-400 hover:text-white transition cursor-pointer"
-              aria-label="Yopish"
-            >
-              <X class="h-4 w-4" />
-            </button>
+            <!-- 2-Column Content -->
+            <div class="grid grid-cols-[1.15fr_1.25fr] gap-2.5 items-stretch">
+              <!-- Chap ustun: Dars maqsadi va maslahat -->
+              <div class="flex flex-col gap-1.5 justify-between">
+                <div class="rounded-xl border border-white/[0.08] bg-white/[0.03] p-2.5">
+                  <div class="flex items-center gap-1.5 text-[11px] font-semibold text-sky-300">
+                    <Target class="h-3 w-3" />
+                    <span>Dars maqsadi</span>
+                  </div>
+                  <p class="mt-0.5 text-[11px] leading-relaxed text-zinc-200 line-clamp-2">
+                    {{ lesson.brief?.goal || lesson.description }}
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-1.5">
+                  <div class="rounded-xl border border-white/[0.08] bg-white/[0.03] p-2">
+                    <div class="flex items-center gap-1 text-[10px] font-semibold text-violet-300">
+                      <Hand class="h-2.5 w-2.5" />
+                      <span>Barmoqlar</span>
+                    </div>
+                    <p class="mt-0.5 text-[10px] leading-snug text-zinc-300 line-clamp-2">
+                      {{ lesson.brief?.fingers || '1–5 barmoq raqamlari.' }}
+                    </p>
+                  </div>
+
+                  <div class="rounded-xl border border-amber-400/20 bg-amber-500/[0.06] p-2">
+                    <div class="flex items-center gap-1 text-[10px] font-semibold text-amber-300">
+                      <Lightbulb class="h-2.5 w-2.5" />
+                      <span>Maslahat</span>
+                    </div>
+                    <p class="mt-0.5 text-[10px] leading-snug text-zinc-200/90 line-clamp-3">
+                      {{ lesson.brief?.tip || lesson.description }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- O‘ng ustun: Rejim + Qo‘l + Boshlash amallari -->
+              <div class="flex flex-col gap-2 justify-between rounded-xl border border-white/[0.08] bg-white/[0.025] p-2.5">
+                <!-- Learning Mode Selector -->
+                <div class="flex items-center justify-between gap-1.5">
+                  <span class="text-[11px] font-medium text-zinc-300">Rejim:</span>
+                  <div class="grid grid-cols-2 gap-1 rounded-lg border border-white/[0.08] bg-black/30 p-0.5 flex-1 max-w-[190px]">
+                    <button
+                      type="button"
+                      @click="emit('update:learningMode', 'wait')"
+                      :class="[
+                        'flex items-center justify-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-semibold transition cursor-pointer',
+                        learningMode === 'wait'
+                          ? 'bg-sky-400 text-zinc-950 shadow-sm'
+                          : 'text-zinc-400'
+                      ]"
+                    >
+                      <Clock class="h-2.5 w-2.5" />
+                      <span>Kutish</span>
+                    </button>
+                    <button
+                      type="button"
+                      @click="emit('update:learningMode', 'flow')"
+                      :class="[
+                        'flex items-center justify-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-semibold transition cursor-pointer',
+                        learningMode === 'flow'
+                          ? 'bg-emerald-400 text-zinc-950 shadow-sm'
+                          : 'text-zinc-400'
+                      ]"
+                    >
+                      <Activity class="h-2.5 w-2.5" />
+                      <span>Flow</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Hand Mode Selector (if both) -->
+                <div
+                  v-if="lesson.handMode === 'both'"
+                  class="flex items-center justify-between gap-1.5 border-t border-white/[0.06] pt-1.5"
+                >
+                  <span class="text-[11px] font-medium text-zinc-300">Qo‘l:</span>
+                  <div class="grid grid-cols-3 gap-0.5 rounded-lg border border-white/[0.08] bg-black/30 p-0.5 flex-1 max-w-[210px]">
+                    <button
+                      type="button"
+                      @click="emit('update:practiceHand', 'right')"
+                      :class="[
+                        'rounded px-1.5 py-0.5 text-[10px] font-semibold transition cursor-pointer',
+                        practiceHand === 'right' ? 'bg-sky-400 text-zinc-950' : 'text-zinc-400'
+                      ]"
+                    >
+                      O‘ng
+                    </button>
+                    <button
+                      type="button"
+                      @click="emit('update:practiceHand', 'left')"
+                      :class="[
+                        'rounded px-1.5 py-0.5 text-[10px] font-semibold transition cursor-pointer',
+                        practiceHand === 'left' ? 'bg-violet-400 text-zinc-950' : 'text-zinc-400'
+                      ]"
+                    >
+                      Chap
+                    </button>
+                    <button
+                      type="button"
+                      @click="emit('update:practiceHand', 'both')"
+                      :class="[
+                        'rounded px-1.5 py-0.5 text-[10px] font-semibold transition cursor-pointer',
+                        practiceHand === 'both' ? 'bg-white text-zinc-950' : 'text-zinc-400'
+                      ]"
+                    >
+                      Ikkala
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-2 pt-0.5">
+                  <button
+                    type="button"
+                    @click="emit('demo')"
+                    class="flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-white/[0.1] bg-white/[0.05] active:bg-white/[0.1] py-1.5 px-2.5 text-xs font-medium text-zinc-200 transition cursor-pointer"
+                  >
+                    <Headphones class="h-3.5 w-3.5" />
+                    <span>Tinglash</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    @click="emit('start')"
+                    class="flex flex-[1.4] items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-gradient-to-r from-sky-400 via-blue-500 to-emerald-400 hover:brightness-110 active:scale-95 py-1.5 px-3 text-xs font-bold text-zinc-950 shadow-md shadow-sky-500/25 transition cursor-pointer"
+                  >
+                    <Play v-if="learningMode === 'flow'" class="h-3.5 w-3.5 fill-current" />
+                    <Sparkles v-else class="h-3.5 w-3.5" />
+                    <span>Boshlash</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Qisqa yo‘riqnoma bloklari -->
-          <div class="relative mt-4 space-y-2.5">
-            <div class="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3.5">
-              <div class="flex items-center gap-2 text-xs font-semibold text-sky-300">
-                <Target class="h-3.5 w-3.5" />
-                <span>Bu darsda nima o‘rganiladi</span>
+          <!-- ==================== VERTICAL / STANDARD LAYOUT (Portrait va Laptop uchun) ==================== -->
+          <div v-else class="relative">
+            <!-- Yuqori qism -->
+            <div class="relative flex items-start justify-between gap-3">
+              <div>
+                <div class="flex items-center flex-wrap gap-1.5 mb-2">
+                  <span
+                    class="rounded-full border border-white/[0.1] bg-white/[0.06] px-2.5 py-0.5 text-[11px] font-semibold text-zinc-200"
+                  >
+                    {{ levelInfo?.title || `${lesson.level}-bosqich` }}
+                  </span>
+                  <span
+                    :class="[
+                      'rounded-full border px-2.5 py-0.5 text-[11px] font-semibold',
+                      handBadgeClass
+                    ]"
+                  >
+                    {{ handBadgeText }}
+                  </span>
+                  <span
+                    class="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 font-mono-num text-[11px] text-zinc-300"
+                  >
+                    {{ lesson.bpm || lesson.defaultBpm }} BPM · {{ lesson.steps.length }} qadam
+                  </span>
+                </div>
+
+                <h2 class="text-base sm:text-xl font-bold text-white tracking-tight">
+                  {{ lesson.title }}
+                </h2>
+                <p class="mt-0.5 text-xs text-zinc-400">
+                  {{ lesson.subtitle }}
+                </p>
               </div>
-              <p class="mt-1 text-xs sm:text-sm leading-relaxed text-zinc-200">
-                {{ lesson.brief?.goal || lesson.description }}
-              </p>
+
+              <button
+                type="button"
+                @click="emit('close')"
+                class="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-400 hover:text-white transition cursor-pointer"
+                aria-label="Yopish"
+              >
+                <X class="h-4 w-4" />
+              </button>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Qisqa yo‘riqnoma bloklari -->
+            <div class="relative mt-3.5 space-y-2">
               <div class="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3">
-                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-violet-300">
-                  <Hand class="h-3.5 w-3.5" />
-                  <span>Barmoqlar joylashuvi</span>
+                <div class="flex items-center gap-2 text-xs font-semibold text-sky-300">
+                  <Target class="h-3.5 w-3.5" />
+                  <span>Bu darsda nima o‘rganiladi</span>
                 </div>
-                <p class="mt-1 text-xs leading-relaxed text-zinc-300">
-                  {{ lesson.brief?.fingers || 'Ekranda ko‘rsatilgan 1–5 barmoq raqamlariga amal qiling.' }}
+                <p class="mt-1 text-xs leading-relaxed text-zinc-200">
+                  {{ lesson.brief?.goal || lesson.description }}
                 </p>
               </div>
 
-              <div class="rounded-2xl border border-amber-400/20 bg-amber-500/[0.06] p-3">
-                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-amber-300">
-                  <Lightbulb class="h-3.5 w-3.5" />
-                  <span>Asosiy maslahat</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-2.5">
+                  <div class="flex items-center gap-1.5 text-[11px] font-semibold text-violet-300">
+                    <Hand class="h-3.5 w-3.5" />
+                    <span>Barmoqlar joylashuvi</span>
+                  </div>
+                  <p class="mt-1 text-[11px] leading-relaxed text-zinc-300">
+                    {{ lesson.brief?.fingers || 'Ekranda ko‘rsatilgan 1–5 barmoq raqamlariga amal qiling.' }}
+                  </p>
                 </div>
-                <p class="mt-1 text-xs leading-relaxed text-zinc-200/90">
-                  {{ lesson.brief?.tip || lesson.description }}
-                </p>
-              </div>
-            </div>
-          </div>
 
-          <!-- O‘rganish rejimi va Qo‘l tanlash -->
-          <div class="relative mt-4 space-y-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3.5">
-            <!-- Learning Mode -->
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <span class="text-xs font-medium text-zinc-300">O‘rganish rejimi:</span>
-              <div class="grid grid-cols-2 gap-1 rounded-xl border border-white/[0.08] bg-black/30 p-1">
-                <button
-                  type="button"
-                  @click="emit('update:learningMode', 'wait')"
-                  :class="[
-                    'flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer',
-                    learningMode === 'wait'
-                      ? 'bg-sky-400 text-zinc-950 shadow-sm'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  ]"
-                >
-                  <Clock class="h-3.5 w-3.5" />
-                  <span>O‘rganish (Kutish)</span>
-                </button>
-                <button
-                  type="button"
-                  @click="emit('update:learningMode', 'flow')"
-                  :class="[
-                    'flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer',
-                    learningMode === 'flow'
-                      ? 'bg-emerald-400 text-zinc-950 shadow-sm'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  ]"
-                >
-                  <Activity class="h-3.5 w-3.5" />
-                  <span>Ritm (Flow)</span>
-                </button>
+                <div class="rounded-2xl border border-amber-400/20 bg-amber-500/[0.06] p-2.5">
+                  <div class="flex items-center gap-1.5 text-[11px] font-semibold text-amber-300">
+                    <Lightbulb class="h-3.5 w-3.5" />
+                    <span>Asosiy maslahat</span>
+                  </div>
+                  <p class="mt-1 text-[11px] leading-relaxed text-zinc-200/90">
+                    {{ lesson.brief?.tip || lesson.description }}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <!-- Practice Hand Selector (faqat ikki qo‘lli darslarda) -->
-            <div
-              v-if="lesson.handMode === 'both'"
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-white/[0.07] pt-3"
-            >
-              <span class="text-xs font-medium text-zinc-300">Mashq qilish qo‘li:</span>
-              <div class="grid grid-cols-3 gap-1 rounded-xl border border-white/[0.08] bg-black/30 p-1">
-                <button
-                  type="button"
-                  @click="emit('update:practiceHand', 'right')"
-                  :class="[
-                    'rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition cursor-pointer',
-                    practiceHand === 'right'
-                      ? 'bg-sky-400 text-zinc-950'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  ]"
-                >
-                  Faqat o‘ng
-                </button>
-                <button
-                  type="button"
-                  @click="emit('update:practiceHand', 'left')"
-                  :class="[
-                    'rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition cursor-pointer',
-                    practiceHand === 'left'
-                      ? 'bg-violet-400 text-zinc-950'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  ]"
-                >
-                  Faqat chap
-                </button>
-                <button
-                  type="button"
-                  @click="emit('update:practiceHand', 'both')"
-                  :class="[
-                    'rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition cursor-pointer',
-                    practiceHand === 'both'
-                      ? 'bg-white text-zinc-950'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  ]"
-                >
-                  Ikki qo‘l
-                </button>
+            <!-- O‘rganish rejimi va Qo‘l tanlash -->
+            <div class="relative mt-3 space-y-2.5 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3">
+              <!-- Learning Mode -->
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
+                <span class="text-xs font-medium text-zinc-300">O‘rganish rejimi:</span>
+                <div class="grid grid-cols-2 gap-1 rounded-xl border border-white/[0.08] bg-black/30 p-1">
+                  <button
+                    type="button"
+                    @click="emit('update:learningMode', 'wait')"
+                    :class="[
+                      'flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer',
+                      learningMode === 'wait'
+                        ? 'bg-sky-400 text-zinc-950 shadow-sm'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    ]"
+                  >
+                    <Clock class="h-3.5 w-3.5" />
+                    <span>O‘rganish (Kutish)</span>
+                  </button>
+                  <button
+                    type="button"
+                    @click="emit('update:learningMode', 'flow')"
+                    :class="[
+                      'flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer',
+                      learningMode === 'flow'
+                        ? 'bg-emerald-400 text-zinc-950 shadow-sm'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    ]"
+                  >
+                    <Activity class="h-3.5 w-3.5" />
+                    <span>Ritm (Flow)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Practice Hand Selector (faqat ikki qo‘lli darslarda) -->
+              <div
+                v-if="lesson.handMode === 'both'"
+                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 border-t border-white/[0.07] pt-2.5"
+              >
+                <span class="text-xs font-medium text-zinc-300">Mashq qilish qo‘li:</span>
+                <div class="grid grid-cols-3 gap-1 rounded-xl border border-white/[0.08] bg-black/30 p-1">
+                  <button
+                    type="button"
+                    @click="emit('update:practiceHand', 'right')"
+                    :class="[
+                      'rounded-lg px-2 py-1 text-[11px] font-semibold transition cursor-pointer',
+                      practiceHand === 'right'
+                        ? 'bg-sky-400 text-zinc-950'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    ]"
+                  >
+                    Faqat o‘ng
+                  </button>
+                  <button
+                    type="button"
+                    @click="emit('update:practiceHand', 'left')"
+                    :class="[
+                      'rounded-lg px-2 py-1 text-[11px] font-semibold transition cursor-pointer',
+                      practiceHand === 'left'
+                        ? 'bg-violet-400 text-zinc-950'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    ]"
+                  >
+                    Faqat chap
+                  </button>
+                  <button
+                    type="button"
+                    @click="emit('update:practiceHand', 'both')"
+                    :class="[
+                      'rounded-lg px-2 py-1 text-[11px] font-semibold transition cursor-pointer',
+                      practiceHand === 'both'
+                        ? 'bg-white text-zinc-950'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    ]"
+                  >
+                    Ikki qo‘l
+                  </button>
+                </div>
+              </div>
+
+              <!-- Ikki qo‘l rang eslatmasi -->
+              <div
+                v-if="lesson.handMode === 'both'"
+                class="flex items-center justify-center gap-4 pt-0.5 text-[10px] text-zinc-400"
+              >
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="h-2 w-2 rounded-full bg-gradient-to-r from-violet-400 to-orange-400" />
+                  Chap qo‘l (Binafsha/Sariq)
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="h-2 w-2 rounded-full bg-gradient-to-r from-sky-400 to-emerald-400" />
+                  O‘ng qo‘l (Ko‘k/Yashil)
+                </span>
               </div>
             </div>
 
-            <!-- Ikki qo‘l rang eslatmasi -->
-            <div
-              v-if="lesson.handMode === 'both'"
-              class="flex items-center justify-center gap-4 pt-1 text-[11px] text-zinc-400"
-            >
-              <span class="inline-flex items-center gap-1.5">
-                <span class="h-2.5 w-2.5 rounded-full bg-gradient-to-r from-violet-400 to-orange-400" />
-                Chap qo‘l (Binafsha/Sariq)
-              </span>
-              <span class="inline-flex items-center gap-1.5">
-                <span class="h-2.5 w-2.5 rounded-full bg-gradient-to-r from-sky-400 to-emerald-400" />
-                O‘ng qo‘l (Ko‘k/Yashil)
-              </span>
+            <!-- Harakat tugmalari -->
+            <div class="relative mt-4 flex flex-col sm:flex-row items-center gap-2">
+              <button
+                type="button"
+                @click="emit('demo')"
+                class="flex w-full sm:w-auto flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-white/[0.1] bg-white/[0.05] hover:bg-white/[0.1] active:scale-95 px-4 py-2.5 text-xs sm:text-sm font-medium text-zinc-200 transition cursor-pointer"
+              >
+                <Headphones class="h-4 w-4" />
+                <span>Avval tinglash</span>
+              </button>
+
+              <button
+                type="button"
+                @click="emit('start')"
+                class="flex w-full sm:w-auto flex-[1.35] items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-sky-400 via-blue-500 to-emerald-400 hover:brightness-110 active:scale-95 px-5 py-2.5 text-xs sm:text-sm font-bold text-zinc-950 shadow-lg shadow-sky-500/25 transition cursor-pointer"
+              >
+                <Play v-if="learningMode === 'flow'" class="h-4 w-4 fill-current" />
+                <Sparkles v-else class="h-4 w-4" />
+                <span>Boshlash</span>
+              </button>
             </div>
-          </div>
-
-          <!-- Harakat tugmalari -->
-          <div class="relative mt-5 flex flex-col sm:flex-row items-center gap-2.5">
-            <button
-              type="button"
-              @click="emit('demo')"
-              class="flex w-full sm:w-auto flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-white/[0.1] bg-white/[0.05] hover:bg-white/[0.1] px-4 py-2.5 text-sm font-medium text-zinc-200 transition cursor-pointer"
-            >
-              <Headphones class="h-4 w-4" />
-              <span>Avval tinglash</span>
-            </button>
-
-            <button
-              type="button"
-              @click="emit('start')"
-              class="flex w-full sm:w-auto flex-[1.35] items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-sky-400 via-blue-500 to-emerald-400 hover:brightness-110 px-5 py-2.5 text-sm font-bold text-zinc-950 shadow-lg shadow-sky-500/25 transition cursor-pointer"
-            >
-              <Play v-if="learningMode === 'flow'" class="h-4 w-4 fill-current" />
-              <Sparkles v-else class="h-4 w-4" />
-              <span>Boshlash</span>
-            </button>
           </div>
         </div>
       </div>

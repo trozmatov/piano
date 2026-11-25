@@ -17,7 +17,9 @@ import {
   VolumeX,
   Tag,
   Waves,
-  X
+  X,
+  Smartphone,
+  Info
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -143,17 +145,25 @@ function openLessonsFromSettings() {
             </button>
           </div>
 
-          <!-- To‘liq ekran (Fullscreen API) tugmasi -->
+          <!-- To‘liq ekran (Fullscreen API) tugmasi — mobil uchun qulay va sezilarli -->
           <button
             v-if="viewport.fullscreenSupported"
             type="button"
             @click="emit('toggle-fullscreen')"
-            class="flex h-7.5 w-7.5 items-center justify-center rounded-xl border border-white/[0.09] bg-white/[0.045] active:bg-white/[0.12] text-zinc-200 transition cursor-pointer"
-            :title="viewport.isFullscreen ? 'To‘liq ekrandan chiqish' : 'To‘liq ekran'"
+            :class="[
+              'inline-flex items-center gap-1 rounded-xl border transition cursor-pointer',
+              viewport.isFullscreen
+                ? 'h-7.5 w-7.5 justify-center border-sky-400/40 bg-sky-500/20 text-sky-200'
+                : 'border-sky-400/35 bg-sky-500/15 hover:bg-sky-500/25 active:bg-sky-500/35 px-2 py-1 text-sky-200'
+            ]"
+            :title="viewport.isFullscreen ? 'To‘liq ekrandan chiqish' : 'Brauzer panellarini yashirish va to‘liq ekranga o‘tish'"
             :aria-label="viewport.isFullscreen ? 'To‘liq ekrandan chiqish' : 'To‘liq ekran'"
           >
             <Minimize2 v-if="viewport.isFullscreen" class="h-3.5 w-3.5 text-sky-300" />
-            <Maximize2 v-else class="h-3.5 w-3.5" />
+            <template v-else>
+              <Maximize2 class="h-3 w-3 text-sky-300" />
+              <span class="hidden xs:inline text-[11px] font-semibold text-sky-200">To‘liq ekran</span>
+            </template>
           </button>
 
           <!-- Ixcham "Sozlamalar" menyusi tugmasi -->
@@ -564,6 +574,45 @@ function openLessonsFromSettings() {
                 <span :class="midiState.connected ? 'text-emerald-400 font-medium' : 'text-zinc-500'">
                   {{ midiLabel }}
                 </span>
+              </div>
+
+              <!-- Ekran rejimi: To'liq ekran sozlamasi (Android / Desktop) -->
+              <div v-if="viewport.fullscreenSupported" class="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-medium text-zinc-300">Ekran ko‘rinishi</span>
+                  <span class="text-[10px] text-zinc-400">
+                    {{ viewport.isFullscreen ? 'To‘liq ekran faol' : 'Oddiy rejim' }}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  @click="emit('toggle-fullscreen')"
+                  :class="[
+                    'flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 px-3 text-xs font-semibold transition cursor-pointer',
+                    viewport.isFullscreen
+                      ? 'border-sky-400/40 bg-sky-500/20 text-sky-200'
+                      : 'border-sky-400/35 bg-sky-500/15 text-sky-200 hover:bg-sky-500/25 active:bg-sky-500/35'
+                  ]"
+                >
+                  <Minimize2 v-if="viewport.isFullscreen" class="h-4 w-4" />
+                  <Maximize2 v-else class="h-4 w-4" />
+                  <span>{{ viewport.isFullscreen ? 'To‘liq ekrandan chiqish' : 'Brauzer panellarini yashirish (To‘liq ekran)' }}</span>
+                </button>
+              </div>
+
+              <!-- iOS Safari to'liq ekran qo'llanmasi -->
+              <div
+                v-if="viewport.isIOS && !viewport.isStandalone"
+                class="rounded-xl border border-amber-400/25 bg-amber-500/[0.07] p-3 text-left space-y-1.5"
+              >
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-amber-300">
+                  <Smartphone class="h-3.5 w-3.5 shrink-0" />
+                  <span>Safari-da ekranni kengaytirish:</span>
+                </div>
+                <p class="text-[11px] leading-relaxed text-zinc-300">
+                  1. Safari pastidagi <strong>«aA»</strong> tugmasini bosib <strong>«Veb-sayt panellarini yashirish»</strong> ni tanlang.<br />
+                  2. Yoki <strong>«Ulashish»</strong> (Share) → <strong>«Asosiy ekranga qo‘shish»</strong> qilsangiz, pianino alohida ilovadek to‘liq ekranda ishlaydi.
+                </p>
               </div>
             </div>
           </div>

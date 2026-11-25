@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { Star, ArrowRight, RotateCcw, Trophy, Sparkles, CheckCircle2, Clock, Activity } from 'lucide-vue-next'
+import { Star, ArrowRight, RotateCcw, Trophy, Sparkles, CheckCircle2, Clock, Activity, X } from 'lucide-vue-next'
 import VisualGuide from './VisualGuide.vue'
 import PianoKeyboard from './PianoKeyboard.vue'
 import LessonBriefModal from './LessonBriefModal.vue'
@@ -57,6 +57,7 @@ const totalSongBeats = computed(() => {
 // Umumiy dars holati
 const currentStepIndex = ref(0)
 const completed = ref(false)
+const completionModalOpen = ref(true)
 const mistakes = ref(0)
 const correctSteps = ref(0)
 const streak = ref(0)
@@ -369,6 +370,7 @@ function resetLesson({ showBrief = false } = {}) {
   currentStepIndex.value = firstPlayable
   flowBeat.value = timeline.value[firstPlayable]?.startBeat ?? 0
   completed.value = false
+  completionModalOpen.value = true
   mistakes.value = 0
   correctSteps.value = 0
   streak.value = 0
@@ -397,6 +399,7 @@ function completeLesson() {
   if (completed.value) return
   stopFlowLoop()
   completed.value = true
+  completionModalOpen.value = true
   durationSec.value = startTime.value
     ? Math.max(1, Math.round((Date.now() - startTime.value) / 1000))
     : 1
@@ -1020,8 +1023,35 @@ onBeforeUnmount(() => {
       @update:practice-hand="handlePracticeHandChange"
     />
 
-    <!-- DARS YAKUNI MODALI -->
+    <!-- DARS YAKUNI MODALI VA FLOATING NATIJA TUGMASI -->
     <Teleport to="body">
+      <!-- Agar foydalanuvchi modalni yopsa, natijani qayta ochish uchun suzuvchi ixcham tugma -->
+      <Transition
+        enter-active-class="transition duration-250 ease-out"
+        enter-from-class="opacity-0 scale-90 translate-y-3"
+        enter-to-class="opacity-100 scale-100 translate-y-0"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100 translate-y-0"
+        leave-to-class="opacity-0 scale-90 translate-y-3"
+      >
+        <button
+          v-if="completed && mode === 'lesson' && !completionModalOpen"
+          type="button"
+          @click="completionModalOpen = true"
+          class="fixed bottom-3 right-3 z-40 inline-flex items-center gap-2 rounded-2xl border border-emerald-400/40 bg-[#0e1320]/95 backdrop-blur-xl px-3.5 py-2 text-xs font-bold text-emerald-300 shadow-2xl shadow-emerald-500/20 active:scale-95 transition cursor-pointer"
+        >
+          <div class="flex items-center gap-0.5">
+            <Star
+              v-for="s in earnedStars"
+              :key="`floating-star-${s}`"
+              class="h-3 w-3 fill-amber-400 text-amber-300"
+            />
+          </div>
+          <span>Natijani ko‘rish</span>
+          <ArrowRight class="h-3.5 w-3.5 text-emerald-400" />
+        </button>
+      </Transition>
+
       <Transition
         enter-active-class="transition duration-300 ease-out"
         enter-from-class="opacity-0 scale-95"
@@ -1031,39 +1061,187 @@ onBeforeUnmount(() => {
         leave-to-class="opacity-0 scale-95"
       >
         <div
-          v-if="completed && mode === 'lesson'"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 overflow-y-auto"
+          v-if="completed && mode === 'lesson' && completionModalOpen"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-2.5 sm:p-4 overflow-y-auto safe-area-x safe-area-bottom"
+          @click.self="completionModalOpen = false"
         >
+          <!-- LANDSCAPE / RESPONSIVE MODAL CONTAINER -->
           <div
-            class="glass-panel relative w-full max-w-[460px] overflow-hidden rounded-3xl border border-white/[0.12] bg-[#0e121d]/95 p-5 sm:p-7 text-center shadow-2xl my-auto"
+            :class="[
+              'glass-panel relative w-full overflow-hidden rounded-3xl border border-white/[0.12] bg-[#0c101b]/96 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] my-auto',
+              viewport.isShortLandscape
+                ? 'max-w-2xl p-3 sm:p-4 max-h-[94dvh]'
+                : 'max-w-[440px] p-4.5 sm:p-6 text-center max-h-[90dvh]'
+            ]"
           >
+            <!-- Ambient Glow -->
             <div
-              class="pointer-events-none absolute -top-24 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full bg-sky-500/20 blur-3xl"
+              class="pointer-events-none absolute -top-24 left-1/2 h-44 w-72 -translate-x-1/2 rounded-full bg-sky-500/20 blur-3xl"
             />
 
-            <div class="relative">
+            <!-- Top Close button (X) -->
+            <button
+              type="button"
+              @click="completionModalOpen = false"
+              class="absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-xl bg-white/[0.06] hover:bg-white/[0.12] active:scale-95 text-zinc-400 hover:text-white transition cursor-pointer"
+              title="Yopish (Pianinoni ko‘rish)"
+              aria-label="Yopish"
+            >
+              <X class="h-4 w-4" />
+            </button>
+
+            <!-- ==================== SHORT LANDSCAPE LAYOUT (Smartfonlar gorizontal ekrani uchun) ==================== -->
+            <div v-if="viewport.isShortLandscape" class="relative">
+              <!-- Top Header Row -->
+              <div class="flex items-center gap-2 pr-8 mb-2">
+                <div
+                  class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/35 bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-300"
+                >
+                  <CheckCircle2 class="h-3 w-3" />
+                  <span>Dars muvaffaqiyatli yakunlandi!</span>
+                </div>
+                <div
+                  v-if="isNewRecord"
+                  class="inline-flex items-center gap-1 rounded-full bg-amber-400/15 border border-amber-300/35 px-2 py-0.5 text-[10px] font-semibold text-amber-300"
+                >
+                  <Trophy class="h-3 w-3" />
+                  <span>Yangi rekord!</span>
+                </div>
+              </div>
+
+              <!-- 2-Column Grid -->
+              <div class="grid grid-cols-[1.05fr_1.35fr] gap-3 items-center">
+                <!-- Chap qism: Dars nomi, yulduzchalar -->
+                <div class="text-left flex flex-col justify-center min-w-0 pr-1">
+                  <h2 class="text-sm sm:text-base font-bold text-white tracking-tight line-clamp-2 leading-tight">
+                    {{ lesson.title }}
+                  </h2>
+                  <p class="text-[11px] text-zinc-400 line-clamp-1 mt-0.5">
+                    {{ lesson.subtitle }}
+                  </p>
+
+                  <!-- Stars -->
+                  <div class="my-2 flex items-center gap-2">
+                    <div
+                      v-for="s in 3"
+                      :key="`ls-${s}`"
+                      :style="{ animationDelay: `${(s - 1) * 120}ms` }"
+                      :class="s <= earnedStars ? 'animate-pop-star' : 'opacity-25'"
+                    >
+                      <Star
+                        :class="[
+                          'h-7 w-7 transition-all',
+                          s <= earnedStars
+                            ? 'fill-amber-400 text-amber-300 drop-shadow-[0_0_14px_rgba(251,191,36,0.7)]'
+                            : 'text-zinc-600'
+                        ]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- O‘ng qism: Natijalar paneli + Amallar -->
+                <div class="flex flex-col gap-2">
+                  <!-- Ko‘rsatkichlar kartasi -->
+                  <div
+                    :class="[
+                      'grid gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] p-1.5 text-center',
+                      learningMode === 'flow' ? 'grid-cols-4' : 'grid-cols-3'
+                    ]"
+                  >
+                    <div>
+                      <div class="text-[10px] text-zinc-400">Aniqlik</div>
+                      <div class="font-mono-num text-sm sm:text-base font-bold text-emerald-400">
+                        {{ accuracy }}%
+                      </div>
+                    </div>
+                    <div v-if="learningMode === 'flow'" class="border-l border-white/[0.07]">
+                      <div class="text-[10px] text-zinc-400 inline-flex items-center gap-0.5">
+                        <Activity class="h-2.5 w-2.5 text-sky-400" /> Ritm
+                      </div>
+                      <div class="font-mono-num text-sm sm:text-base font-bold text-sky-300">
+                        {{ timingAccuracy }}%
+                      </div>
+                    </div>
+                    <div class="border-l border-white/[0.07]">
+                      <div class="text-[10px] text-zinc-400">Xatolar</div>
+                      <div
+                        class="font-mono-num text-sm sm:text-base font-bold"
+                        :class="mistakes === 0 ? 'text-sky-300' : 'text-red-400'"
+                      >
+                        {{ mistakes }}
+                      </div>
+                    </div>
+                    <div class="border-l border-white/[0.07]">
+                      <div class="text-[10px] text-zinc-400 inline-flex items-center gap-0.5">
+                        <Clock class="h-2.5 w-2.5" /> Vaqt
+                      </div>
+                      <div class="font-mono-num text-[11px] font-semibold text-zinc-100 pt-0.5">
+                        {{ formatDuration(durationSec) }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tugmalar -->
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      @click="resetLesson({ showBrief: false })"
+                      class="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] bg-white/[0.05] active:bg-white/[0.1] py-2 px-2.5 text-xs font-semibold text-zinc-200 transition cursor-pointer"
+                    >
+                      <RotateCcw class="h-3.5 w-3.5 shrink-0" />
+                      <span>Qayta</span>
+                    </button>
+
+                    <button
+                      v-if="hasNextLesson"
+                      type="button"
+                      @click="emit('next-lesson')"
+                      class="flex flex-[1.4] items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 active:scale-95 py-2 px-3 text-xs font-bold text-zinc-950 shadow-md shadow-sky-500/25 transition cursor-pointer"
+                    >
+                      <span>Keyingi dars</span>
+                      <ArrowRight class="h-3.5 w-3.5 shrink-0" />
+                    </button>
+
+                    <button
+                      v-else
+                      type="button"
+                      @click="emit('switch-freeplay')"
+                      class="flex flex-[1.4] items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-400 to-sky-400 hover:from-emerald-300 hover:to-sky-300 active:scale-95 py-2 px-3 text-xs font-bold text-zinc-950 shadow-md shadow-emerald-500/25 transition cursor-pointer"
+                    >
+                      <Sparkles class="h-3.5 w-3.5 shrink-0" />
+                      <span>Erkin chalish</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ==================== VERTICAL / STANDARD LAYOUT (Portrait va Laptop uchun) ==================== -->
+            <div v-else class="relative">
               <div
-                class="mx-auto mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300"
+                class="mx-auto mb-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300"
               >
                 <CheckCircle2 class="h-3.5 w-3.5" />
                 Dars muvaffaqiyatli yakunlandi!
               </div>
 
-              <h2 class="text-lg sm:text-2xl font-bold text-white tracking-tight">
+              <h2 class="text-base sm:text-xl font-bold text-white tracking-tight">
                 {{ lesson.title }}
               </h2>
-              <p class="mt-0.5 text-xs sm:text-sm text-zinc-400">{{ lesson.subtitle }}</p>
+              <p class="mt-0.5 text-xs text-zinc-400">{{ lesson.subtitle }}</p>
 
-              <div class="my-4 sm:my-6 flex items-center justify-center gap-3">
+              <!-- Stars -->
+              <div class="my-3 sm:my-4 flex items-center justify-center gap-3">
                 <div
                   v-for="s in 3"
-                  :key="s"
+                  :key="`vs-${s}`"
                   :style="{ animationDelay: `${(s - 1) * 140}ms` }"
                   :class="s <= earnedStars ? 'animate-pop-star' : 'opacity-30'"
                 >
                   <Star
                     :class="[
-                      'h-9 w-9 sm:h-11 sm:w-11 transition-all',
+                      'h-8 w-8 sm:h-10 sm:w-10 transition-all',
                       s <= earnedStars
                         ? 'fill-amber-400 text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.7)]'
                         : 'text-zinc-600'
@@ -1074,22 +1252,22 @@ onBeforeUnmount(() => {
 
               <div
                 v-if="isNewRecord"
-                class="mb-3.5 inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 border border-amber-300/35 px-3 py-1 text-xs font-semibold text-amber-300"
+                class="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 border border-amber-300/35 px-3 py-1 text-xs font-semibold text-amber-300"
               >
                 <Trophy class="h-3.5 w-3.5" />
                 Yangi shaxsiy rekord!
               </div>
 
-              <!-- Natija ko‘rsatkichlari -->
+              <!-- Stats grid -->
               <div
                 :class="[
-                  'grid gap-2.5 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3',
+                  'grid gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-2.5 sm:p-3',
                   learningMode === 'flow' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'
                 ]"
               >
                 <div>
                   <div class="text-[11px] text-zinc-400">Aniqlik</div>
-                  <div class="mt-0.5 font-mono-num text-lg sm:text-xl font-bold text-emerald-400">
+                  <div class="mt-0.5 font-mono-num text-base sm:text-xl font-bold text-emerald-400">
                     {{ accuracy }}%
                   </div>
                 </div>
@@ -1097,14 +1275,14 @@ onBeforeUnmount(() => {
                   <div class="text-[11px] text-zinc-400 inline-flex items-center gap-1">
                     <Activity class="h-3 w-3 text-sky-400" /> Ritm
                   </div>
-                  <div class="mt-0.5 font-mono-num text-lg sm:text-xl font-bold text-sky-300">
+                  <div class="mt-0.5 font-mono-num text-base sm:text-xl font-bold text-sky-300">
                     {{ timingAccuracy }}%
                   </div>
                 </div>
                 <div class="border-l border-white/[0.07]">
                   <div class="text-[11px] text-zinc-400">Xatolar</div>
                   <div
-                    class="mt-0.5 font-mono-num text-lg sm:text-xl font-bold"
+                    class="mt-0.5 font-mono-num text-base sm:text-xl font-bold"
                     :class="mistakes === 0 ? 'text-sky-300' : 'text-red-400'"
                   >
                     {{ mistakes }}
@@ -1114,17 +1292,18 @@ onBeforeUnmount(() => {
                   <div class="text-[11px] text-zinc-400 inline-flex items-center gap-1">
                     <Clock class="h-3 w-3" /> Vaqt
                   </div>
-                  <div class="mt-0.5 font-mono-num text-xs sm:text-sm font-semibold text-zinc-100 pt-1">
+                  <div class="mt-0.5 font-mono-num text-xs sm:text-sm font-semibold text-zinc-100 pt-0.5">
                     {{ formatDuration(durationSec) }}
                   </div>
                 </div>
               </div>
 
-              <div class="mt-5 flex flex-col sm:flex-row items-center gap-2.5">
+              <!-- Actions -->
+              <div class="mt-3.5 sm:mt-5 flex flex-col sm:flex-row items-center gap-2">
                 <button
                   type="button"
                   @click="resetLesson({ showBrief: false })"
-                  class="flex w-full sm:w-auto flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-white/[0.1] bg-white/[0.05] hover:bg-white/[0.1] px-4 py-2.5 text-sm font-medium text-zinc-200 transition cursor-pointer"
+                  class="flex w-full sm:w-auto flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-white/[0.1] bg-white/[0.05] hover:bg-white/[0.1] active:scale-95 px-4 py-2.5 text-xs sm:text-sm font-medium text-zinc-200 transition cursor-pointer"
                 >
                   <RotateCcw class="h-4 w-4 shrink-0" />
                   Qayta mashq
@@ -1134,7 +1313,7 @@ onBeforeUnmount(() => {
                   v-if="hasNextLesson"
                   type="button"
                   @click="emit('next-lesson')"
-                  class="flex w-full sm:w-auto flex-[1.3] items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-sky-500/25 transition cursor-pointer"
+                  class="flex w-full sm:w-auto flex-[1.3] items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 active:scale-95 px-4 py-2.5 text-xs sm:text-sm font-semibold text-zinc-950 shadow-lg shadow-sky-500/25 transition cursor-pointer"
                 >
                   <span>Keyingi darsga o‘tish</span>
                   <ArrowRight class="h-4 w-4 shrink-0" />
@@ -1144,7 +1323,7 @@ onBeforeUnmount(() => {
                   v-else
                   type="button"
                   @click="emit('switch-freeplay')"
-                  class="flex w-full sm:w-auto flex-[1.3] items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-emerald-400 to-sky-400 hover:from-emerald-300 hover:to-sky-300 px-4 py-2.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-emerald-500/25 transition cursor-pointer"
+                  class="flex w-full sm:w-auto flex-[1.3] items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-emerald-400 to-sky-400 hover:from-emerald-300 hover:to-sky-300 active:scale-95 px-4 py-2.5 text-xs sm:text-sm font-semibold text-zinc-950 shadow-lg shadow-emerald-500/25 transition cursor-pointer"
                 >
                   <Sparkles class="h-4 w-4 shrink-0" />
                   <span>Erkin chalishga o‘tish</span>

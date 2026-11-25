@@ -394,7 +394,7 @@ onBeforeUnmount(() => {
     <div
       :class="[
         'relative rounded-2xl border border-white/[0.09] bg-[#0b0d14] shadow-[0_24px_60px_-15px_rgba(0,0,0,0.9)]',
-        isScrollableKeyboard ? 'p-1.5' : 'p-2 sm:p-2.5'
+        isScrollableKeyboard ? 'p-1.5 pb-2.5 sm:pb-3' : 'p-2 sm:p-2.5'
       ]"
     >
       <div
@@ -429,7 +429,7 @@ onBeforeUnmount(() => {
           type="button"
           :disabled="!canPanLeft"
           @click="emit('pan-left')"
-          class="flex w-8 shrink-0 flex-col items-center justify-center rounded-xl border border-white/[0.09] bg-white/[0.045] active:bg-sky-500/25 active:border-sky-400/40 text-zinc-200 disabled:opacity-25 transition cursor-pointer"
+          class="flex w-9 sm:w-10 shrink-0 flex-col items-center justify-center rounded-xl border border-white/[0.09] bg-white/[0.045] active:bg-sky-500/25 active:border-sky-400/40 text-zinc-200 disabled:opacity-25 active:scale-95 transition cursor-pointer select-none"
           aria-label="Pastki oktavaga surish"
           title="Pastki oktava"
         >
@@ -442,7 +442,7 @@ onBeforeUnmount(() => {
           :class="[
             'piano-touch-surface relative flex-1 overflow-hidden rounded-b-[10px]',
             isShortLandscape
-              ? 'h-[45dvh] min-h-[146px] max-h-[195px]'
+              ? 'h-[44dvh] min-h-[142px] max-h-[190px]'
               : isCompact
                 ? 'h-48 sm:h-52'
                 : 'h-44 sm:h-52 lg:h-56'
@@ -462,7 +462,7 @@ onBeforeUnmount(() => {
               @contextmenu.prevent
               :style="{ left: `${key.leftPct}%`, width: `${key.widthPct}%` }"
               :class="[
-                'piano-touch-surface absolute top-0 bottom-0 flex flex-col items-center justify-end pb-2 sm:pb-2.5 rounded-b-[9px] border-x border-b transition-[transform,background,box-shadow] duration-75 cursor-pointer focus:outline-none',
+                'piano-touch-surface absolute top-0 bottom-0.5 sm:bottom-1 flex flex-col items-center justify-end pb-2 sm:pb-2.5 rounded-b-[8px] border-x border-b transition-[transform,background,box-shadow] duration-75 cursor-pointer focus:outline-none',
                 getWhiteKeyClasses(key.note)
               ]"
             >
@@ -552,7 +552,7 @@ onBeforeUnmount(() => {
           type="button"
           :disabled="!canPanRight"
           @click="emit('pan-right')"
-          class="flex w-8 shrink-0 flex-col items-center justify-center rounded-xl border border-white/[0.09] bg-white/[0.045] active:bg-sky-500/25 active:border-sky-400/40 text-zinc-200 disabled:opacity-25 transition cursor-pointer"
+          class="flex w-9 sm:w-10 shrink-0 flex-col items-center justify-center rounded-xl border border-white/[0.09] bg-white/[0.045] active:bg-sky-500/25 active:border-sky-400/40 text-zinc-200 disabled:opacity-25 active:scale-95 transition cursor-pointer select-none"
           aria-label="Yuqori oktavaga surish"
           title="Yuqori oktava"
         >
